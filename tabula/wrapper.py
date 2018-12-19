@@ -3,6 +3,13 @@
 This module extract tables from PDF into pandas DataFrame. Currently, the
 implementation of this module uses subprocess.
 
+This forked version expects the nailgun server to be running and uses the nailgun
+client to launch tabula-java, to save JVM startup time when processing multiple
+files. As a consequence:
+* input file path must be complete, not relative paths,
+  or the nailgun server may not be able to see the file.
+* java_options must be specified when launching the nailgun server
+
 Todo:
   * Use py4j and handle multiple tables in a page
 
@@ -50,7 +57,9 @@ def read_pdf(input_path,
 
     Args:
         input_path (file like obj):
-            File like object of tareget PDF file.
+            File like object of target PDF file.
+            Note: this must be the complete path, not a relative path,
+            or nailgun server may not be able to see the file
         output_format (str, optional):
             Output format of this function (dataframe or json)
         encoding (str, optional):
@@ -84,6 +93,8 @@ def read_pdf(input_path,
 
     elif isinstance(java_options, str):
         java_options = shlex.split(java_options)
+        print("Warning, java options will not be used. They must be specified" +
+              "when launching the nailgun server")
 
     # to prevent tabula-py from stealing focus on every call on mac
     if platform.system() == 'Darwin':
@@ -99,12 +110,13 @@ def read_pdf(input_path,
     options = build_options(kwargs)
 
     path, temporary = localize_file(input_path)
-    args = ["java"] + java_options + ["-jar", JAR_PATH] + options + [path]
+    args = ["ng"] + ["technology.tabula.CommandLineApp"] + options + [path]
 
     if not os.path.exists(path):
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), path)
 
     try:
+        print('Calling: ', ' '.join(args))
         output = subprocess.check_output(args)
 
     except FileNotFoundError as e:
@@ -220,15 +232,18 @@ def convert_into(input_path, output_path, output_format='csv', java_options=None
 
     elif isinstance(java_options, str):
         java_options = shlex.split(java_options)
+        print("Warning, java options will not be used. They must be specified" +
+              "when launching the nailgun server")
 
     options = build_options(kwargs)
     path, temporary = localize_file(input_path)
-    args = ["java"] + java_options + ["-jar", JAR_PATH] + options + [path]
+    args = ["ng"] + ["technology.tabula.CommandLineApp"] + options + [path]
 
     if not os.path.exists(path):
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), path)
 
     try:
+        print('Calling: ', ' '.join(args))
         subprocess.check_output(args)
 
     except FileNotFoundError as e:
@@ -270,15 +285,18 @@ def convert_into_by_batch(input_dir, output_format='csv', java_options=None, **k
 
     elif isinstance(java_options, str):
         java_options = shlex.split(java_options)
+        print("Warning, java options will not be used. They must be specified" +
+              "when launching the nailgun server")
 
     # Option for batch
     kwargs['batch'] = input_dir
 
     options = build_options(kwargs)
 
-    args = ["java"] + java_options + ["-jar", JAR_PATH] + options
+    args = ["ng"] + ["technology.tabula.CommandLineApp"] + options
 
     try:
+        print('Calling: ', ' '.join(args))
         subprocess.check_output(args)
 
     except FileNotFoundError as e:
