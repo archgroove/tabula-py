@@ -6,7 +6,7 @@ implementation of this module uses subprocess.
 This forked version expects the nailgun server to be running and uses the nailgun
 client to launch tabula-java, to save JVM startup time when processing multiple
 files. As a consequence:
-* input file path must be complete, not relative paths,
+* input file path must be absolute, not relative paths,
   or the nailgun server may not be able to see the file.
 * java_options must be specified when launching the nailgun server
 
@@ -58,7 +58,7 @@ def read_pdf(input_path,
     Args:
         input_path (file like obj):
             File like object of target PDF file.
-            Note: this must be the complete path, not a relative path,
+            Note: this must be the absolute path, not a relative path,
             or nailgun server may not be able to see the file
         output_format (str, optional):
             Output format of this function (dataframe or json)
