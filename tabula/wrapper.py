@@ -93,8 +93,8 @@ def read_pdf(input_path,
 
     elif isinstance(java_options, str):
         java_options = shlex.split(java_options)
-        print("Warning, java options will not be used. They must be specified" +
-              "when launching the nailgun server")
+        print("Warning, if nailgun server is running then these java options" +
+              "will not be used (unless they were passed to the server at startup).")
 
     # to prevent tabula-py from stealing focus on every call on mac
     if platform.system() == 'Darwin':
@@ -123,8 +123,15 @@ def read_pdf(input_path,
         raise JavaNotFoundError(JAVA_NOT_FOUND_ERROR)
 
     except subprocess.CalledProcessError as e:
-        sys.stderr.write("Error: {}\n".format(e.output.decode(encoding)))
-        raise
+        # Try to run tabula without the nailgun server
+        sys.stderr.write("Warning: not using nailgun server: {}\n".format(e.output.decode(encoding)))
+        try:
+            args = ["java"] + java_options + ["-jar", JAR_PATH] + options + [path]
+            print('Calling: ', ' '.join(args))
+            output = subprocess.check_output(args)
+        except subprocess.CalledProcessError as e:
+            sys.stderr.write("Error: {}\n".format(e.output.decode(encoding)))
+            raise
 
     finally:
         if temporary:
@@ -232,8 +239,8 @@ def convert_into(input_path, output_path, output_format='csv', java_options=None
 
     elif isinstance(java_options, str):
         java_options = shlex.split(java_options)
-        print("Warning, java options will not be used. They must be specified" +
-              "when launching the nailgun server")
+        print("Warning, if nailgun server is running then these java options" +
+              "will not be used (unless they were passed to the server at startup).")
 
     options = build_options(kwargs)
     path, temporary = localize_file(input_path)
@@ -250,8 +257,15 @@ def convert_into(input_path, output_path, output_format='csv', java_options=None
         raise JavaNotFoundError(JAVA_NOT_FOUND_ERROR)
 
     except subprocess.CalledProcessError as e:
-        sys.stderr.write("Error: {}\n".format(e.output))
-        raise
+        # Try to run tabula without the nailgun server
+        sys.stderr.write("Warning: not using nailgun server: {}\n".format(e.output.decode(encoding)))
+        try:
+            args = ["java"] + java_options + ["-jar", JAR_PATH] + options + [path]
+            print('Calling: ', ' '.join(args))
+            output = subprocess.check_output(args)
+        except subprocess.CalledProcessError as e:
+            sys.stderr.write("Error: {}\n".format(e.output.decode(encoding)))
+            raise
 
     finally:
         if temporary:
@@ -285,8 +299,8 @@ def convert_into_by_batch(input_dir, output_format='csv', java_options=None, **k
 
     elif isinstance(java_options, str):
         java_options = shlex.split(java_options)
-        print("Warning, java options will not be used. They must be specified" +
-              "when launching the nailgun server")
+        print("Warning, if nailgun server is running then these java options" +
+              "will not be used (unless they were passed to the server at startup).")
 
     # Option for batch
     kwargs['batch'] = input_dir
@@ -303,8 +317,15 @@ def convert_into_by_batch(input_dir, output_format='csv', java_options=None, **k
         raise JavaNotFoundError(JAVA_NOT_FOUND_ERROR)
 
     except subprocess.CalledProcessError as e:
-        sys.stderr.write("Error: {}\n".format(e.output))
-        raise
+        # Try to run tabula without the nailgun server
+        sys.stderr.write("Warning: not using nailgun server: {}\n".format(e.output.decode(encoding)))
+        try:
+            args = ["java"] + java_options + ["-jar", JAR_PATH] + options
+            print('Calling: ', ' '.join(args))
+            output = subprocess.check_output(args)
+        except subprocess.CalledProcessError as e:
+            sys.stderr.write("Error: {}\n".format(e.output.decode(encoding)))
+            raise
 
 
 def _extract_format_for_conversion(output_format='csv'):
